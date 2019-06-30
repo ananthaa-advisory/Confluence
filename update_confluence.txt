@@ -83,7 +83,7 @@ generate_post_data()
 EOF
 }
 
-curl -u aanatha:syntel@123 -X PUT -H 'Content-Type: application/json' --data "$(generate_post_data)" https://XXXX.com/confluence/rest/api/content/234619303
+curl -u XXXX:XXXXX -X PUT -H 'Content-Type: application/json' --data "$(generate_post_data)" https://XXXX.com/confluence/rest/api/content/234619303
 
 #### for Second table
 ##\
