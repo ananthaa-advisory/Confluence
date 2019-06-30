@@ -1,0 +1,89 @@
+# https://stackoverflow.com/questions/17029902/using-curl-post-with-variables-defined-in-bash-script-functions - FOr EOF  function below
+
+#!/bin/bash
+# https://stackoverflow.com/questions/8231847/bash-script-to-count-number-of-times-script-has-run  - For version
+# "value": "<p><table><tr><th>Server Name<\/th><\/tr><tr><th>`echo $a`<\/th><\/tr><\/table><\/p>",
+file="count.cnt"
+
+
+
+
+# Variables and  For loop for counting CLDB nodes:
+
+cldb_total=`maprcli node list -columns svc,ip | grep cldb | wc -l`
+maprcli node list -columns svc,ip | grep cldb | awk '{print $1}' > cldb_hosts
+cldb_completed=0
+cldb_pending=0
+for i in $(cat cldb_hosts); do
+cldb_ssh=`ssh -q $i "cat /etc/redhat-release | grep -c 7.5"`
+if [[ "$cldb_ssh" -eq 1 ]]; then
+((cldb_completed++))
+else
+((cldb_pending++))
+fi
+done
+cldb_completion=$(($cldb_completed*100/$cldb_total))
+
+# Variables for EDGE nodes and For loop:
+#
+edge_total=`maprcli node list -columns svc,ip | grep nfs* | wc -l`
+maprcli node list -columns svc,ip | grep nfs* | awk '{print $1}' > edge_hosts
+edge_completed=0
+edge_pending=0
+
+for i in $(cat edge_hosts); do
+edge_ssh=`ssh -q $i  "cat /etc/redhat-release | grep -c 7.5"`
+if [[ "$edge_ssh" -eq 1 ]]; then
+((edge_completed++))
+else
+((edge_pending++))
+fi
+done
+edge_completion=$(($edge_completed*100/$edge_total))
+
+
+if [ -e ${file} ]; then
+    count=$(cat ${file})
+    else
+        count=0
+        fi
+
+        ((count++))
+
+        echo ${count} > ${file}
+#REST API 3 - Please disregard - Page creating for purely testing purpopse
+# SPace Key is required , you will get the space key under the project branch ,its like a folder/directory
+generate_post_data()
+{
+  cat <<EOF
+  {
+
+            "id": "234619303",
+            "type": "page",
+            "title":"Patching status",
+            "space":{"key":"XXXX"},
+            "body": {
+            "storage": {
+            "value": "<p><table  width='700'><tr><td colspan='7' style='background-color:#D3D3D3'><center><b> Patching Status<\/b><\/center><\/td><\/tr> \
+                     <tr><th><\/th> \
+                     <th>Total<\/th> \
+                     <th>Completed<\/th> \
+                     <th>Pending<\/th> \
+                     <th>Completion<\/th><\/tr> \
+                     <tr><th>CLDB<\/th> \
+                     <th>`echo $cldb_total`<\/th> \
+                     <th>`echo $cldb_completed`<\/th> \
+                     <th>`echo $cldb_pending`<\/th> \
+                     <th>`echo $cldb_completion%`<\/th><\/tr><tr><th> EDGE<\/th><th>`echo $edge_total`<\/th><th>`echo $edge_completed`<\/th><th>`echo $edge_pending`<\/th><th>`echo $edge_completion%`<\/th><\/tr><\/table><\/p>",
+            "representation": "storage"
+            }
+            },
+            "version":{"number":"`echo $count`"}
+}
+EOF
+}
+
+curl -u aanatha:syntel@123 -X PUT -H 'Content-Type: application/json' --data "$(generate_post_data)" https://XXXX.com/confluence/rest/api/content/234619303
+
+#### for Second table
+##\
