@@ -1,0 +1,67 @@
+#!/bin/bash
+
+FILE=/home/user/default_results
+rm /home/user/mail_default_critical.html
+#rm /home/user/critical.html
+EMAIL_HTML=/home/user/mail_default_critical.html
+
+HTML_FILE=/home/user/critical.html
+
+# Send Mail function which will write data to $EMAIL_HTML file
+send_email(){
+(
+echo To: XXXXXX
+echo "From: HELLO Team "
+echo "MIME-Version: 1.0"
+echo "Content-Disposition: inline"
+echo "Subject:  Job Details "
+echo "Content-Type: text/html"
+echo "<font size="3" color="black">Hi Team,</br></br>Please find below details</br></br>Action - Below jobs FORM</br></br></font>"
+)
+}
+
+send_email > $EMAIL_HTML
+echo "<table border=1>" > $HTML_FILE
+echo "<TR bgcolor=#D6EAF8><TH colspan=4>Default Jobs</TH></TR>" >> $HTML_FILE
+
+
+# True if FILE exists and has a size greater than zero.
+
+if [ -s "$FILE" ]
+then
+
+while read line
+do
+id=`echo $line | awk '{print $1}'`
+user=`echo $line | awk '{print $2}'`
+queue=`echo $line | awk '{print $3}'`
+status=`echo $line | awk '{print $4}'`
+
+# previous example
+#user=`echo $line | grep -v corrupted | awk '{print $4}' | cut -d '/' -f4`
+#service_account=`/opt/pbis/bin/find-user-by-name --level 2 $user | grep -w ServiceAccounts`
+#if [ ! -z "$service_account" ]
+#then
+
+echo -e "<tr bgcolor=#FFD700>">> $HTML_FILE;
+##user=`echo $line | grep -v corrupted | awk '{print $4}' | cut -d '/' -f4`
+#ticket_details=`echo $line  | grep -v corrupted | awk '{print $4}'`
+#expiry=`echo $line | awk '{print $5,$6,$7,$8,$9,$10,$11}'`
+
+echo -e "<td> $id</td>" >> $HTML_FILE;
+echo -e "<td> $user</td>" >> $HTML_FILE;
+echo -e "<td>$queue</td>">> $HTML_FILE;
+echo -e "<td> $status</td> " >> $HTML_FILE;
+#fi
+
+
+
+done < $FILE
+ echo "</table>" >> $HTML_FILE; echo "<font size="3" color="black"></br>Thank you,</br>Aravind</font>" >> $HTML_FILE;
+ cat $HTML_FILE >> $EMAIL_HTML
+
+cat $EMAIL_HTML | /usr/sbin/sendmail -t
+
+else
+exit
+fi
